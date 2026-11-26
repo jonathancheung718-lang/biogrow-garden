@@ -1,0 +1,35 @@
+name: Publish BioGrow
+on:
+  push:
+    branches: [main]
+    paths:
+      - site.tar.gz
+      - .github/workflows/publish.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify and unpack BioGrow
+        run: |
+          echo "d72ec1b76b2a5c1cee5d8442d467bea0da9170370e7729be6f8e72fac0991097  site.tar.gz" | sha256sum --check
+          mkdir -p public
+          tar -xzf site.tar.gz -C public
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+      - name: Publish site
+        id: deployment
+        uses: actions/deploy-pages@v4
